@@ -1,0 +1,94 @@
+policy-options {
+policy-statement lbpp {
+    term 10 {
+        then {
+            load-balance per-packet;
+        }
+    }
+}
+}
+routing-options {
+forwarding-table {
+    export lbpp;
+}
+}
+protocols {
+    pcep {
+        pce northstar1 {
+            local-address {{loopback}};
+            destination-ipv4-address 40.1.1.10;
+            destination-port 4189;
+            pce-type active stateful;
+            lsp-provisioning;
+        }
+    }
+mpls {
+    lsp-external-controller pccd;
+    explicit-null;
+    interface all;
+    interface ge-0/0/0.0 {
+        disable;
+    }
+    interface fxp0.0 {
+        disable;
+    }
+}
+}
+services {
+	analytics {
+		streaming-server default-collector {
+			remote-address {{telemetry_collector}};
+			remote-port {{telemetry_port}};
+		}
+		export-profile default-export-profile {
+			local-address {{loopback}};
+			local-port 1000;
+			reporting-rate 10;
+			format gpb;
+			transport udp;
+		}
+		sensor phy-interface {
+			server-name default-collector;
+			export-name default-export-profile;
+			resource /junos/system/linecard/interface/;
+		}
+		sensor lsp-usase {
+			server-name default-collector;
+			export-name default-export-profile;
+			resource /junos/services/label-switched-path/usage/;
+		}
+		sensor fw-filter {
+			server-name default-collector;
+			export-name default-export-profile;
+			resource /junos/system/linecard/firewall/;
+		}
+		sensor fw-filter {
+			server-name default-collector;
+			export-name default-export-profile;
+			resource /junos/system/linecard/interface/logical/usage/;
+		}
+	}
+}
+system {
+syslog {
+    user * {
+        any emergency;
+    }
+    host {{syslog_server1}} {
+        any any;
+        port {{syslog_port1}};
+    }
+    host {{syslog_server2}} {
+        any any;
+        match UI_COMMIT_COMPLETED;
+        port {{syslog_port2}};
+    }
+    file messages {
+        any notice;
+        authorization info;
+    }
+    file interactive-commands {
+        interactive-commands any;
+    }
+}
+}
