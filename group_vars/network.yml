@@ -1,0 +1,8 @@
+junos_username: lab
+junos_password: q1w2e3
+telemetry_collector: 40.1.1.13
+telemetry_port: 50000
+syslog_server1: 40.1.1.20
+syslog_port1: 9999
+syslog_server2: 40.1.1.13
+syslog_port2: 6000
